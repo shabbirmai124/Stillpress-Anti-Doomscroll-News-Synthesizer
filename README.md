@@ -14,18 +14,18 @@ Every screenshot in `docs/images/` was captured directly from the live running S
 ![Stillpress Synthesizer Workbench](docs/images/01_synthesizer_workbench.png)
 
 **What it does & how I built it:**
-- **Three Input Modes**: Readers can paste any **Article URL**, switch to **Paste Text** (with `Ctrl/⌘ + Enter` submit for paywalled articles), or pick breaking stories from the **Live Wire** RSS tab.
-- **Sensationalized Sample Presets**: Three built-in polarizing news articles allow immediate one-click verification of bias stripping, fact-vs-opinion separation, and historical context.
-- **Cross-Source Grounding Toggle**: Enables or disables live search verification against independent outlets before generating the final briefing.
-- **Calm Broadsheet Output (`src/components/BroadsheetReport.tsx`)**: Renders **01. Core Verified Facts**, **02. Claims & Differing Perspectives** (requiring explicit attribution), **03. Historical Context**, **04. Cross-Source Verification** citations, a collapsible **Sensationalism Stripped** phrasing comparison table, deterministic word-count reduction (`original words → briefing words`), Plain-Text/Markdown copy, and `@media print` **Print / Save PDF** export.
+- **Three Input Modes**: Readers can paste any **Article Link** (with one-click **Paste from clipboard**), switch to **Paste Text** (with `Ctrl/⌘ + Enter` submit for paywalled articles), or pick breaking stories from the **Headlines** RSS tab.
+- **Sensationalized Sample Presets (`Try a Dramatic Story`)**: Three built-in polarizing news articles allow immediate one-click verification of bias stripping, fact-vs-opinion separation, and historical context.
+- **Check Multiple Outlets Toggle**: Enables or disables live search verification against independent outlets before generating the final briefing.
+- **Calm Broadsheet Output (`src/components/BroadsheetReport.tsx`)**: Renders **01. Key Facts**, **02. Different Viewpoints** (requiring explicit attribution), **03. Background History**, **04. What Other Outlets Report** citations, a collapsible **Emotional Words Removed** phrasing comparison table (`Dramatic Original Phrase` vs. `Calm Version`), deterministic word-count reduction (`original words → briefing words`), **Larger Text / Standard Text** comfort toggle, Plain-Text/Markdown copy, and `@media print` **Print / Save PDF** export.
 
 ---
 
-### 2. Live Mozilla Readability Extraction (`Inspect Text`)
+### 2. Live Mozilla Readability Extraction (`Preview Text`)
 ![Live Readability Extraction from BBC News](docs/images/07_readability_extraction_live.png)
 
 **What it does & how I built it (`server/extractor.ts`):**
-- Clicking **Inspect Text** calls `POST /api/extract`, validating the URL (blocking `localhost`, loopback, and private RFC-1918/link-local IPv4/IPv6 ranges against SSRF), fetching HTML with a 12-second timeout, parsing the DOM via `jsdom`, and running `@mozilla/readability` (Firefox Reader View's engine).
+- Clicking **Preview Text** calls `POST /api/extract`, validating the URL (blocking `localhost`, loopback, and private RFC-1918/link-local IPv4/IPv6 ranges against SSRF), fetching HTML with a 12-second timeout, parsing the DOM via `jsdom`, and running `@mozilla/readability` (Firefox Reader View's engine).
 - Menus, pop-ups, and ad sidebars are stripped away, returning clean article prose (shown above extracting **563 clean words** from a live BBC News report) that can be sent directly into the editor.
 - When publishers return HTTP `401`, `403`, `405`, `406`, or `429` bot-blocker responses, Stillpress displays a clear fallback guiding the user to **Paste Text** or the **Chrome Extension** running inside their own authenticated browser tab.
 
@@ -45,8 +45,8 @@ Every screenshot in `docs/images/` was captured directly from the live running S
 
 **What it does & how I built it (`src/components/DailyDigestView.tsx` & `server/gemini.ts`):**
 - Replaces continuous doomscrolling with a single daily morning edition capped at **1–7 stories**.
-- As you select stories in the **Live RSS Queue**, the right-hand **Edition Preview Queue** updates live with numbered story previews.
-- Compiling calls `POST /api/digest` to produce a two-sentence overview plus per-story **Core Facts**, **Perspectives**, and **Historical Context**, exportable as **Broadsheet View**, **Plain-Text Email View**, `.txt` download, or printable PDF.
+- As you select stories under **Pick Up to 7 Stories**, the right-hand **Edition Preview Queue** updates live with numbered story previews.
+- Clicking **Compile Morning Digest** calls `POST /api/digest` to produce a two-sentence overview plus per-story **Key Facts**, **Different Viewpoints**, and **Background History**, exportable as **Broadsheet View**, **Email View**, `.txt` download, or printable PDF.
 
 ---
 
@@ -54,7 +54,7 @@ Every screenshot in `docs/images/` was captured directly from the live running S
 ![Stillpress Automated Cron Workflow](docs/images/09_daily_digest_cron.png)
 
 **What it does & how I built it (`src/components/DailyDigestView.tsx`):**
-- Clicking **Cron Automation Setup** reveals production-ready scheduling templates using repository secrets (`STILLPRESS_URL`, `RESEND_API_KEY`, `DIGEST_TO_EMAIL`):
+- Clicking **Schedule 8 AM Email** reveals production-ready scheduling templates using repository secrets (`STILLPRESS_URL`, `RESEND_API_KEY`, `DIGEST_TO_EMAIL`):
   - **`.github/workflows/daily-digest.yml`**: Scheduled GitHub Actions job (`0 13 * * *`) that fetches `POST /api/digest` with `curl -sf` and emails `plainTextEmail` via Resend.
   - **`stillpress-digest-cron.mjs`**: Standalone Node script for VPS `cron` or Cloud Scheduler.
 - Includes one-click **Copy** and **Download `.yml` / `.mjs`** buttons directly inside the UI.
@@ -71,12 +71,13 @@ Every screenshot in `docs/images/` was captured directly from the live running S
 
 ---
 
-### 7. Shared Server Synthesis Vault (`Archive`)
-![Stillpress Synthesized Archive](docs/images/04_archive_view.png)
+### 7. Saved Briefings Vault (`Archive`)
+![Stillpress Saved Briefings Archive](docs/images/04_archive_view.png)
 
 **What it does & how I built it (`server/gemini.ts` & `src/components/ArchiveView.tsx`):**
-- To eliminate redundant LLM API costs when multiple users synthesize the same trending news story, every completed briefing is hashed via `SHA-256` (from canonical URL or text prefix + grounding toggle) and persisted to `.cache/syntheses.json`.
-- Provides live search, topic-desk filters, tabular compression totals, one-click reopen into the broadsheet reader, and entry deletion (`DELETE /api/archive/:id`).
+- Every completed briefing is persisted on the server in `.cache/syntheses.json` so readers can revisit past articles immediately without re-running synthesis or incurring duplicate API calls.
+- **Instant Reopen**: Reopen any saved broadsheet in full detail with its verified citations and phrasing comparison table.
+- **Full User Control**: Filter by topic desk, search across outlets and headlines, or remove individual saved entries at any time (`DELETE /api/archive/:id`).
 
 ---
 
@@ -171,7 +172,7 @@ Deploy the Node.js + Express backend first to a public HTTPS host (Google Cloud 
    - `STILLPRESS_URL`: `https://your-deployed-domain.com`
    - `RESEND_API_KEY`: Your Resend API key
    - `DIGEST_TO_EMAIL`: Recipient email address
-2. Download `.github/workflows/daily-digest.yml` directly from the **Daily Digest → Cron Automation Setup** panel in Stillpress and commit it to `.github/workflows/daily-digest.yml`.
+2. Download `.github/workflows/daily-digest.yml` directly from the **Daily Digest → Schedule 8 AM Email** panel in Stillpress and commit it to `.github/workflows/daily-digest.yml`.
 
 ---
 

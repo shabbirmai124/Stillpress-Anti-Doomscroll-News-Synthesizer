@@ -70,20 +70,18 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({
       <section className="flex flex-col gap-5 border-b border-slate-200 pb-6 lg:flex-row lg:items-end lg:justify-between dark:border-slate-800">
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-            Shared Server Cache
+            Saved Reading Vault
           </p>
           <h1 className="mt-2 font-serif text-3xl font-semibold text-slate-900 dark:text-slate-100">
-            Synthesized Archive
+            Saved Briefings
           </h1>
           <p className="mt-1.5 max-w-2xl text-sm text-slate-600 dark:text-slate-400">
-            Every synthesized briefing is deduplicated by SHA-256 hash on the server so repeat article lookups return immediately without redundant model calls.
+            Articles you summarize are saved here automatically so you can revisit them anytime without waiting or re-running the summary.
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-500 tabular-nums dark:text-slate-400">
-            <span>{items.length} briefings stored</span>
+            <span>{items.length} briefings saved</span>
             <span aria-hidden="true">·</span>
-            <span>{totalSourceWords.toLocaleString()} source words distilled</span>
-            <span aria-hidden="true">·</span>
-            <span>Disk-backed cache</span>
+            <span>{totalSourceWords.toLocaleString()} words read calmly</span>
           </div>
         </div>
 
@@ -153,21 +151,13 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({
           </div>
 
           {items.length === 0 && (
-            <div className="mt-10 grid grid-cols-1 gap-6 border-t border-slate-200 pt-8 sm:grid-cols-3 dark:border-slate-800">
-              <div>
-                <div className="text-xs font-semibold text-slate-900 dark:text-slate-100">
-                  SHA-256 Deduplication
-                </div>
-                <p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-                  Identical URLs or article bodies share one cached result across web users and Chrome extension clients.
-                </p>
-              </div>
+            <div className="mt-10 grid grid-cols-1 gap-6 border-t border-slate-200 pt-8 sm:grid-cols-2 dark:border-slate-800">
               <div>
                 <div className="text-xs font-semibold text-slate-900 dark:text-slate-100">
                   Instant Reopen
                 </div>
                 <p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-                  Reopen any cached broadsheet in full detail with its verified citations and phrasing comparison table.
+                  Reopen any saved broadsheet in full detail with its verified citations and phrasing comparison table.
                 </p>
               </div>
               <div>
@@ -175,7 +165,7 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({
                   Full User Control
                 </div>
                 <p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-                  Filter by topic desk or remove individual cached entries at any time.
+                  Filter by topic desk or remove individual saved entries at any time.
                 </p>
               </div>
             </div>

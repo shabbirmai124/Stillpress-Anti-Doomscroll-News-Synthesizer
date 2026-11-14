@@ -24,10 +24,10 @@ interface SynthesizerWorkspaceProps {
 type InputMode = 'url' | 'text' | 'wire';
 
 const PIPELINE_STEPS = [
-  'Extracting clean prose via Mozilla Readability',
-  'Cross-verifying event facts across independent outlets',
-  'Stripping sensationalist adjectives & framing bias',
-  'Formatting calm broadsheet briefing',
+  'Removing ads, pop-ups, and page clutter',
+  'Checking other news outlets for missing context',
+  'Removing dramatic and emotional language',
+  'Preparing your calm briefing',
 ];
 
 export const SynthesizerWorkspace: React.FC<SynthesizerWorkspaceProps> = ({
@@ -189,13 +189,13 @@ export const SynthesizerWorkspace: React.FC<SynthesizerWorkspaceProps> = ({
       <section className="flex flex-col gap-5 border-b border-slate-200 pb-7 lg:flex-row lg:items-end lg:justify-between dark:border-slate-800">
         <div className="max-w-2xl">
           <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-            Calm Journalism Workbench
+            Calm News Reader
           </p>
           <h1 className="headline-balance mt-2 font-serif text-3xl sm:text-4xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
             Read the facts without the outrage cycle.
           </h1>
           <p className="mt-2.5 text-sm sm:text-base leading-relaxed text-slate-600 dark:text-slate-400">
-            Extract clean text from any article URL, cross-check claims against independent reporting, and distill polarizing coverage into verified bullets and historical context.
+            Paste any news link or article text to strip away clickbait, check multiple viewpoints, and read a calm summary with background context.
           </p>
         </div>
 
@@ -211,13 +211,13 @@ export const SynthesizerWorkspace: React.FC<SynthesizerWorkspaceProps> = ({
             }`}
           >
             <ShieldCheck className="h-3.5 w-3.5" />
-            Cross-Source Grounding: {crossVerify ? 'On' : 'Off'}
+            Check Multiple Outlets: {crossVerify ? 'On' : 'Off'}
           </button>
 
           <button
             type="button"
             onClick={onToggleTheme}
-            aria-label={isDark ? 'Switch to Daylight Broadsheet' : 'Switch to Evening Paper'}
+            aria-label={isDark ? 'Switch to Daylight Paper' : 'Switch to Evening Paper'}
             className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50 cursor-pointer whitespace-nowrap shrink-0 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
           >
             {isDark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
@@ -239,9 +239,9 @@ export const SynthesizerWorkspace: React.FC<SynthesizerWorkspaceProps> = ({
             >
               {(
                 [
-                  { id: 'url', label: 'Article URL' },
+                  { id: 'url', label: 'Article Link' },
                   { id: 'text', label: 'Paste Text' },
-                  { id: 'wire', label: 'Live Wire' },
+                  { id: 'wire', label: 'Headlines' },
                 ] as const
               ).map((tab) => {
                 const active = inputMode === tab.id;
@@ -271,12 +271,31 @@ export const SynthesizerWorkspace: React.FC<SynthesizerWorkspaceProps> = ({
             {inputMode === 'url' && (
               <form onSubmit={handleUrlSubmit} className="mt-5 space-y-4">
                 <div>
-                  <label
-                    htmlFor="article-url"
-                    className="block text-xs font-medium text-slate-700 dark:text-slate-300"
-                  >
-                    News article web address
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label
+                      htmlFor="article-url"
+                      className="block text-xs font-medium text-slate-700 dark:text-slate-300"
+                    >
+                      Paste a news article link
+                    </label>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          const clip = await navigator.clipboard.readText();
+                          if (clip) {
+                            setUrlInput(clip.trim());
+                            setExtractedPreview(null);
+                          }
+                        } catch {
+                          // Clipboard permission declined
+                        }
+                      }}
+                      className="text-[11px] font-medium text-blue-900 hover:underline cursor-pointer dark:text-blue-400"
+                    >
+                      Paste from clipboard
+                    </button>
+                  </div>
                   <input
                     id="article-url"
                     type="url"
@@ -289,7 +308,7 @@ export const SynthesizerWorkspace: React.FC<SynthesizerWorkspaceProps> = ({
                     className="mt-1.5 w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-900 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                   />
                   <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
-                    Uses Mozilla Readability to strip navigation, ads, and sidebars before synthesis.
+                    Automatically clears ads and pop-ups before summarizing. If a site has a paywall, use Paste Text instead.
                   </p>
                 </div>
 
@@ -302,11 +321,11 @@ export const SynthesizerWorkspace: React.FC<SynthesizerWorkspaceProps> = ({
                     {isLoading ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        Synthesizing...
+                        Summarizing...
                       </>
                     ) : (
                       <>
-                        Extract &amp; Strip Bias
+                        Summarize Calmly
                         <ArrowRight className="h-4 w-4" />
                       </>
                     )}
@@ -318,7 +337,7 @@ export const SynthesizerWorkspace: React.FC<SynthesizerWorkspaceProps> = ({
                     onClick={handleExtractPreview}
                     className="inline-flex items-center justify-center rounded-lg border border-slate-200 px-3.5 py-2.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-60 cursor-pointer whitespace-nowrap shrink-0 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
                   >
-                    {extractingOnly ? 'Extracting...' : 'Inspect Text'}
+                    {extractingOnly ? 'Reading...' : 'Preview Text'}
                   </button>
                 </div>
 
@@ -573,10 +592,10 @@ export const SynthesizerWorkspace: React.FC<SynthesizerWorkspaceProps> = ({
           {/* 1-Click Sensationalized Samples */}
           <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-[#16191D]">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Test With Sensationalized Examples
+              Try a Dramatic Story (1-Click)
             </h2>
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Run a sample polarizing article through the full neutralization pipeline.
+              See how Stillpress turns an alarmist headline into calm facts.
             </p>
             <div className="mt-3.5 space-y-2">
               {SAMPLE_ARTICLES.map((sample) => (
@@ -634,30 +653,30 @@ export const SynthesizerWorkspace: React.FC<SynthesizerWorkspaceProps> = ({
                   <div>
                     <div className="flex items-center gap-2 text-xs font-semibold text-slate-900 dark:text-slate-100">
                       <BookOpen className="h-4 w-4 text-blue-900 dark:text-blue-400" />
-                      01. Clean Extraction
+                      01. Removes Clutter
                     </div>
                     <p className="mt-1.5 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
-                      Mozilla Readability strips pop-ups, ad banners, and clickbait sidebars before analysis.
+                      Clears away pop-ups, ad banners, and clickbait sidebars so only the article remains.
                     </p>
                   </div>
 
                   <div>
                     <div className="flex items-center gap-2 text-xs font-semibold text-slate-900 dark:text-slate-100">
                       <Globe className="h-4 w-4 text-blue-900 dark:text-blue-400" />
-                      02. Cross-Verification
+                      02. Checks Other Outlets
                     </div>
                     <p className="mt-1.5 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
-                      Optional search grounding checks 2–3 independent outlets to surface omitted context.
+                      Compares the story against independent news sources to catch missing context.
                     </p>
                   </div>
 
                   <div>
                     <div className="flex items-center gap-2 text-xs font-semibold text-slate-900 dark:text-slate-100">
                       <ShieldCheck className="h-4 w-4 text-blue-900 dark:text-blue-400" />
-                      03. Fact Separation
+                      03. Facts Before Opinions
                     </div>
                     <p className="mt-1.5 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
-                      Separates confirmed events from attributed opinions and appends 2–3 sentences of history.
+                      Lists proven events first, separates competing claims, and adds quick background history.
                     </p>
                   </div>
                 </div>

@@ -9,6 +9,7 @@ export const ExtensionBuilderView: React.FC = () => {
   const [originUrl, setOriginUrl] = useState<string>('');
   const [loadingFiles, setLoadingFiles] = useState(true);
   const [copiedFile, setCopiedFile] = useState(false);
+  const [copiedExtUrl, setCopiedExtUrl] = useState(false);
 
   // Interactive Popup Simulator State
   const [simSampleId, setSimSampleId] = useState(SAMPLE_ARTICLES[0].id);
@@ -43,6 +44,12 @@ export const ExtensionBuilderView: React.FC = () => {
     setTimeout(() => setCopiedFile(false), 2000);
   };
 
+  const handleCopyChromeUrl = async () => {
+    await navigator.clipboard.writeText('chrome://extensions');
+    setCopiedExtUrl(true);
+    setTimeout(() => setCopiedExtUrl(false), 2000);
+  };
+
   const runSimulator = async () => {
     const sample = SAMPLE_ARTICLES.find((s) => s.id === simSampleId) || SAMPLE_ARTICLES[0];
     setSimLoading(true);
@@ -75,18 +82,17 @@ export const ExtensionBuilderView: React.FC = () => {
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl">
             <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-              Manifest V3 Browser Package
+              Browser Extension · No Coding Needed
             </p>
             <h1 className="headline-balance mt-2 font-serif text-3xl font-semibold text-slate-900 dark:text-slate-100">
-              Stillpress Chrome Extension
+              Stillpress for Chrome, Edge &amp; Brave
             </h1>
             <p className="mt-2.5 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-              Reads article text directly inside your active browser tab using bundled Mozilla{' '}
-              <code className="font-mono text-xs">Readability.js</code>—bypassing server bot blockers and paywalls—while routing synthesis securely through your Stillpress server with zero API keys inside the extension.
+              Summarize any news page you already have open—even subscriber or login-only articles—in one click from your browser toolbar. Everything is pre-configured inside the download.
             </p>
             {originUrl && (
               <p className="mt-2 font-mono text-xs text-slate-500 dark:text-slate-400 truncate max-w-xl">
-                Proxy endpoint: {originUrl}/api/synthesize
+                Connected server: {originUrl}
               </p>
             )}
           </div>
@@ -105,40 +111,60 @@ export const ExtensionBuilderView: React.FC = () => {
 
         {/* 4-step load unpacked instructions */}
         <div className="mt-8 grid grid-cols-1 gap-4 border-t border-slate-200 pt-6 sm:grid-cols-2 lg:grid-cols-4 dark:border-slate-800">
-          {[
-            {
-              step: '01',
-              title: 'Download & Unzip',
-              desc: 'Download stillpress-chrome-extension.zip containing manifest, popup UI, and Mozilla Readability.js.',
-            },
-            {
-              step: '02',
-              title: 'Open Extensions',
-              desc: 'Navigate to chrome://extensions in Chrome, Brave, or Edge and enable Developer mode.',
-            },
-            {
-              step: '03',
-              title: 'Load Unpacked',
-              desc: 'Click Load unpacked and select the extracted folder. No build step or key editing needed.',
-            },
-            {
-              step: '04',
-              title: 'Click on Any Article',
-              desc: 'Open a dramatic news page and click Stillpress in your toolbar for a calm summary.',
-            },
-          ].map((item) => (
-            <div key={item.step}>
-              <div className="font-mono text-xs font-semibold text-blue-900 tabular-nums dark:text-blue-400">
-                Step {item.step}
-              </div>
-              <div className="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
-                {item.title}
-              </div>
-              <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
-                {item.desc}
-              </p>
+          <div>
+            <div className="font-mono text-xs font-semibold text-blue-900 tabular-nums dark:text-blue-400">
+              Step 01
             </div>
-          ))}
+            <div className="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
+              Download &amp; Unzip
+            </div>
+            <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
+              Click Download above and unzip the folder anywhere on your computer.
+            </p>
+          </div>
+
+          <div>
+            <div className="font-mono text-xs font-semibold text-blue-900 tabular-nums dark:text-blue-400">
+              Step 02
+            </div>
+            <div className="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
+              Open Extensions Page
+            </div>
+            <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
+              Paste <code className="font-mono">chrome://extensions</code> into a new tab and switch on Developer mode (top-right).
+            </p>
+            <button
+              type="button"
+              onClick={handleCopyChromeUrl}
+              className="mt-1.5 text-[11px] font-semibold text-blue-900 hover:underline cursor-pointer dark:text-blue-400"
+            >
+              {copiedExtUrl ? 'Copied chrome://extensions' : 'Copy chrome://extensions'}
+            </button>
+          </div>
+
+          <div>
+            <div className="font-mono text-xs font-semibold text-blue-900 tabular-nums dark:text-blue-400">
+              Step 03
+            </div>
+            <div className="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
+              Select the Folder
+            </div>
+            <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
+              Click Load unpacked in the top-left and pick your unzipped Stillpress folder.
+            </p>
+          </div>
+
+          <div>
+            <div className="font-mono text-xs font-semibold text-blue-900 tabular-nums dark:text-blue-400">
+              Step 04
+            </div>
+            <div className="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
+              Click on Any Article
+            </div>
+            <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
+              Open any news story, click Stillpress in your browser bar, and read calmly.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -148,7 +174,7 @@ export const ExtensionBuilderView: React.FC = () => {
         <section className="lg:col-span-5 rounded-xl border border-slate-200 bg-white p-5 sm:p-6 dark:border-slate-800 dark:bg-[#16191D]">
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Live Popup Simulator
+              Try the Browser Button Here
             </h2>
             <Puzzle className="h-4 w-4 text-slate-400" />
           </div>
@@ -158,7 +184,7 @@ export const ExtensionBuilderView: React.FC = () => {
               htmlFor="sim-article-select"
               className="block text-xs font-medium text-slate-700 dark:text-slate-300"
             >
-              Simulated Active Browser Tab
+              Sample Open Browser Tab
             </label>
             <select
               id="sim-article-select"

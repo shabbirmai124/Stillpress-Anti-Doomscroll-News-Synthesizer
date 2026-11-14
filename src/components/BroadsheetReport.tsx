@@ -21,6 +21,7 @@ export const BroadsheetReport: React.FC<BroadsheetReportProps> = ({
 }) => {
   const [copiedMode, setCopiedMode] = useState<'markdown' | 'text' | null>(null);
   const [showDiffDrawer, setShowDiffDrawer] = useState(true);
+  const [largeText, setLargeText] = useState(false);
 
   const briefingWords = [
     result.neutralHeadline,
@@ -39,17 +40,17 @@ export const BroadsheetReport: React.FC<BroadsheetReportProps> = ({
       result.neutralHeadline,
       `${result.topicCategory}${result.extractedMeta?.siteName ? ` · ${result.extractedMeta.siteName}` : ''}`,
       '',
-      'CORE FACTS',
+      'KEY FACTS',
       ...result.coreFacts.map((f) => `• ${f}`),
       '',
-      'DIFFERING PERSPECTIVES',
+      'DIFFERENT VIEWPOINTS',
       ...result.differingPerspectives.map((p) => `• ${p}`),
       '',
-      'HISTORICAL CONTEXT',
+      'BACKGROUND HISTORY',
       result.historicalContext,
     ];
     if (result.crossSourceNote) {
-      lines.push('', 'CROSS-SOURCE VERIFICATION', result.crossSourceNote);
+      lines.push('', 'WHAT OTHER OUTLETS REPORT', result.crossSourceNote);
     }
     if (result.extractedMeta?.url) {
       lines.push('', `Source: ${result.extractedMeta.url}`);
@@ -62,22 +63,22 @@ export const BroadsheetReport: React.FC<BroadsheetReportProps> = ({
       `# ${result.neutralHeadline}`,
       `*${result.topicCategory}${result.extractedMeta?.siteName ? ` · ${result.extractedMeta.siteName}` : ''} · ${result.readingTimeMinutes} min calm read*`,
       '',
-      '## Core Facts',
+      '## Key Facts',
       ...result.coreFacts.map((f) => `- ${f}`),
       '',
-      '## Differing Perspectives',
+      '## Different Viewpoints',
       ...result.differingPerspectives.map((p) => `- ${p}`),
       '',
-      '## Historical Context',
+      '## Background History',
       result.historicalContext,
     ];
     if (result.crossSourceNote) {
-      lines.push('', '## Cross-Source Verification', result.crossSourceNote);
+      lines.push('', '## What Other Outlets Report', result.crossSourceNote);
     }
     if (result.groundingSources.length > 0) {
       lines.push(
         '',
-        '## Corroborating Sources',
+        '## Supporting Sources',
         ...result.groundingSources.map((s) => `- [${s.title}](${s.url})`)
       );
     }
@@ -92,6 +93,7 @@ export const BroadsheetReport: React.FC<BroadsheetReportProps> = ({
   };
 
   const latencySeconds = (result.latencyMs / 1000).toFixed(2);
+  const proseSizeClass = largeText ? 'text-[17px] leading-[1.8]' : 'text-[15px] leading-[1.7]';
 
   return (
     <article className="rounded-xl border border-slate-200 bg-white p-6 sm:p-10 dark:border-slate-800 dark:bg-[#16191D]">
@@ -115,19 +117,28 @@ export const BroadsheetReport: React.FC<BroadsheetReportProps> = ({
           </span>
           <span aria-hidden="true">·</span>
           <span className="tabular-nums">
-            {result.cached ? 'Served from cache' : `Synthesized in ${latencySeconds}s`}
+            {result.cached ? 'Loaded instantly' : `Ready in ${latencySeconds}s`}
           </span>
         </div>
 
-        {onReset && (
+        <div className="no-print flex items-center gap-4">
           <button
             type="button"
-            onClick={onReset}
-            className="no-print text-xs font-medium text-slate-500 underline-offset-4 hover:text-slate-900 hover:underline cursor-pointer dark:text-slate-400 dark:hover:text-slate-100"
+            onClick={() => setLargeText((prev) => !prev)}
+            className="text-xs font-medium text-slate-500 underline-offset-4 hover:text-slate-900 hover:underline cursor-pointer dark:text-slate-400 dark:hover:text-slate-100"
           >
-            Clear briefing
+            {largeText ? 'Standard Text' : 'Larger Text'}
           </button>
-        )}
+          {onReset && (
+            <button
+              type="button"
+              onClick={onReset}
+              className="text-xs font-medium text-slate-500 underline-offset-4 hover:text-slate-900 hover:underline cursor-pointer dark:text-slate-400 dark:hover:text-slate-100"
+            >
+              Start Over
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Neutralized Headline */}
@@ -138,7 +149,7 @@ export const BroadsheetReport: React.FC<BroadsheetReportProps> = ({
       {result.originalHeadline &&
         result.originalHeadline.toLowerCase() !== result.neutralHeadline.toLowerCase() && (
           <p className="mt-3 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-            Original headline neutralized:{' '}
+            Original headline:{' '}
             <span className="italic text-slate-600 dark:text-slate-300">
               “{result.originalHeadline}”
             </span>
@@ -153,9 +164,9 @@ export const BroadsheetReport: React.FC<BroadsheetReportProps> = ({
           id="core-facts-heading"
           className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400"
         >
-          01. Core Verified Facts
+          01. Key Facts
         </h3>
-        <ul className="mt-4 max-w-[68ch] space-y-3 text-[15px] leading-[1.7] text-slate-800 dark:text-slate-200">
+        <ul className={`mt-4 max-w-[68ch] space-y-3 text-slate-800 dark:text-slate-200 ${proseSizeClass}`}>
           {result.coreFacts.map((fact, idx) => (
             <li key={idx} className="flex gap-3">
               <span className="font-mono text-xs font-medium text-slate-400 tabular-nums pt-1.5 select-none dark:text-slate-500">
@@ -175,9 +186,9 @@ export const BroadsheetReport: React.FC<BroadsheetReportProps> = ({
           id="perspectives-heading"
           className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400"
         >
-          02. Claims &amp; Differing Perspectives
+          02. Different Viewpoints
         </h3>
-        <ul className="mt-4 max-w-[68ch] space-y-3 text-[15px] leading-[1.7] text-slate-700 dark:text-slate-300">
+        <ul className={`mt-4 max-w-[68ch] space-y-3 text-slate-700 dark:text-slate-300 ${proseSizeClass}`}>
           {result.differingPerspectives.map((item, idx) => (
             <li key={idx} className="flex gap-3">
               <span
@@ -198,9 +209,9 @@ export const BroadsheetReport: React.FC<BroadsheetReportProps> = ({
           id="history-heading"
           className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400"
         >
-          03. Historical Context
+          03. Background History
         </h3>
-        <p className="mt-3 max-w-[68ch] text-[15px] leading-[1.75] text-slate-700 dark:text-slate-300">
+        <p className={`mt-3 max-w-[68ch] text-slate-700 dark:text-slate-300 ${proseSizeClass}`}>
           {result.historicalContext}
         </p>
       </section>
@@ -214,7 +225,7 @@ export const BroadsheetReport: React.FC<BroadsheetReportProps> = ({
               id="verification-heading"
               className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400"
             >
-              04. Cross-Source Verification
+              04. What Other Outlets Report
             </h3>
             {result.crossSourceNote && (
               <p className="mt-3 max-w-[68ch] text-sm leading-relaxed text-slate-700 dark:text-slate-300">
@@ -252,7 +263,7 @@ export const BroadsheetReport: React.FC<BroadsheetReportProps> = ({
           >
             <div>
               <span className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                Sensationalism Stripped
+                Emotional Words Removed
               </span>
               {result.emotionalFramingNote && (
                 <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
@@ -272,8 +283,8 @@ export const BroadsheetReport: React.FC<BroadsheetReportProps> = ({
               <table className="w-full text-left text-xs">
                 <thead>
                   <tr className="border-b border-slate-200 text-slate-500 dark:border-slate-700 dark:text-slate-400">
-                    <th className="pb-2 pr-4 font-medium">Original Loaded Phrasing</th>
-                    <th className="pb-2 font-medium">Neutral Equivalent</th>
+                    <th className="pb-2 pr-4 font-medium">Dramatic Original Phrase</th>
+                    <th className="pb-2 font-medium">Calm Version</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200/70 dark:divide-slate-800">

@@ -254,7 +254,7 @@ sendMorningDigest().catch((err) => {
                 className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3.5 py-2.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50 cursor-pointer whitespace-nowrap shrink-0 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
               >
                 <Terminal className="h-3.5 w-3.5" />
-                {showCronPanel ? 'Hide Cron Automation' : 'Cron Automation Setup'}
+                {showCronPanel ? 'Hide Email Schedule' : 'Schedule 8 AM Email'}
               </button>
             </div>
           </div>
@@ -353,7 +353,7 @@ sendMorningDigest().catch((err) => {
         <section className="lg:col-span-5 rounded-xl border border-slate-200 bg-white p-5 sm:p-6 dark:border-slate-800 dark:bg-[#16191D]">
           <div className="flex items-center justify-between gap-2">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Live RSS Queue (Max 7)
+              Pick Up to 7 Stories
             </h2>
             <button
               type="button"
@@ -440,7 +440,7 @@ sendMorningDigest().catch((err) => {
                     onClick={() => setShowPlainText((prev) => !prev)}
                     className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 cursor-pointer dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
                   >
-                    {showPlainText ? 'Broadsheet View' : 'Plain-Text Email View'}
+                    {showPlainText ? 'Reading View' : 'Email View'}
                   </button>
                   <button
                     type="button"
