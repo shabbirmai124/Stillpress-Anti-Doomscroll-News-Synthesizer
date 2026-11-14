@@ -22,6 +22,8 @@ export const DailyDigestView: React.FC = () => {
   const [digest, setDigest] = useState<DailyDigestResult | null>(null);
   const [showPlainText, setShowPlainText] = useState(false);
   const [showCronPanel, setShowCronPanel] = useState(false);
+  const [cronTab, setCronTab] = useState<'actions' | 'node'>('actions');
+  const [copiedCron, setCopiedCron] = useState(false);
   const [copiedText, setCopiedText] = useState(false);
 
   const loadFeeds = async (cat: RssCategory | 'all') => {
@@ -101,8 +103,6 @@ export const DailyDigestView: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://your-stillpress-host.com';
-
   const cronYaml = `name: Stillpress 8AM Calm Digest
 on:
   schedule:
@@ -113,16 +113,102 @@ jobs:
   send-digest:
     runs-on: ubuntu-latest
     steps:
-      - name: Compile Daily Digest from RSS Wire
+      - name: Compile and Email Daily Calm Briefing
+        env:
+          STILLPRESS_URL: \${{ secrets.STILLPRESS_URL }}
+          RESEND_API_KEY: \${{ secrets.RESEND_API_KEY }}
+          DIGEST_TO_EMAIL: \${{ secrets.DIGEST_TO_EMAIL }}
         run: |
-          curl -s -X POST "${origin}/api/digest" \\
+          curl -sf -X POST "\$STILLPRESS_URL/api/digest" \\
             -H "Content-Type: application/json" \\
             -d '{}' > digest.json
+
           node -e '
             const fs = require("fs");
-            const data = JSON.parse(fs.readFileSync("digest.json", "utf8"));
-            console.log(data.plainTextEmail);
-          ' > morning-briefing.txt`;
+            const digest = JSON.parse(fs.readFileSync("digest.json", "utf8"));
+            if (!digest.plainTextEmail) throw new Error("Empty digest payload");
+
+            fetch("https://api.resend.com/emails", {
+              method: "POST",
+              headers: {
+                "Authorization": \`Bearer \${process.env.RESEND_API_KEY}\`,
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                from: "Stillpress <digest@yourdomain.com>",
+                to: [process.env.DIGEST_TO_EMAIL],
+                subject: \`Stillpress Morning Briefing — \${digest.editionDate}\`,
+                text: digest.plainTextEmail
+              })
+            }).then(async (res) => {
+              if (!res.ok) throw new Error(await res.text());
+              console.log("Daily calm briefing delivered.");
+            });
+          '`;
+
+  const nodeCronScript = `// stillpress-digest-cron.mjs
+// Run via system cron or Cloud Scheduler: 0 8 * * * node stillpress-digest-cron.mjs
+const STILLPRESS_URL = process.env.STILLPRESS_URL || "https://your-stillpress-domain.com";
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const DIGEST_TO_EMAIL = process.env.DIGEST_TO_EMAIL;
+
+async function sendMorningDigest() {
+  const digestRes = await fetch(\`\${STILLPRESS_URL}/api/digest\`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({}),
+  });
+
+  if (!digestRes.ok) {
+    throw new Error(\`Digest compilation failed: HTTP \${digestRes.status}\`);
+  }
+
+  const digest = await digestRes.json();
+
+  const emailRes = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: \`Bearer \${RESEND_API_KEY}\`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: "Stillpress <digest@yourdomain.com>",
+      to: [DIGEST_TO_EMAIL],
+      subject: \`Stillpress Morning Briefing — \${digest.editionDate}\`,
+      text: digest.plainTextEmail,
+    }),
+  });
+
+  if (!emailRes.ok) {
+    throw new Error(await emailRes.text());
+  }
+
+  console.log(\`Delivered Stillpress digest for \${digest.editionDate}\`);
+}
+
+sendMorningDigest().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});`;
+
+  const activeCronCode = cronTab === 'actions' ? cronYaml : nodeCronScript;
+
+  const handleCopyCron = async () => {
+    await navigator.clipboard.writeText(activeCronCode);
+    setCopiedCron(true);
+    setTimeout(() => setCopiedCron(false), 2000);
+  };
+
+  const handleDownloadCron = () => {
+    const filename = cronTab === 'actions' ? 'stillpress-daily-digest.yml' : 'stillpress-digest-cron.mjs';
+    const blob = new Blob([activeCronCode], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="space-y-8">
@@ -186,18 +272,69 @@ jobs:
 
       {showCronPanel && (
         <section className="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-[#16191D]">
-          <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                Automated 8:00 AM Daily Digest Cron Workflow
+                Automated 8:00 AM Daily Digest Workflow
               </h2>
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                Schedule this GitHub Actions workflow to invoke Stillpress’s live RSS + Gemini digest endpoint every morning and pipe the plain-text briefing to Resend or SendGrid.
+              <p className="mt-1 max-w-2xl text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+                Configure <code className="font-mono">STILLPRESS_URL</code>,{' '}
+                <code className="font-mono">RESEND_API_KEY</code>, and{' '}
+                <code className="font-mono">DIGEST_TO_EMAIL</code> in your repository secrets to compile and deliver a single plain-text briefing every morning.
               </p>
             </div>
+
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={handleCopyCron}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 cursor-pointer dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+              >
+                {copiedCron ? (
+                  <Check className="h-3.5 w-3.5 text-emerald-700 dark:text-emerald-400" />
+                ) : (
+                  <Copy className="h-3.5 w-3.5" />
+                )}
+                {copiedCron ? 'Copied' : 'Copy'}
+              </button>
+              <button
+                type="button"
+                onClick={handleDownloadCron}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 cursor-pointer dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+              >
+                <Download className="h-3.5 w-3.5" />
+                {cronTab === 'actions' ? 'Download .yml' : 'Download .mjs'}
+              </button>
+            </div>
           </div>
-          <pre className="mt-4 overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-4 font-mono text-xs leading-relaxed text-slate-800 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
-            <code>{cronYaml}</code>
+
+          <div className="mt-4 flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setCronTab('actions')}
+              className={`rounded-md px-3 py-1.5 font-mono text-xs transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
+                cronTab === 'actions'
+                  ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300'
+              }`}
+            >
+              .github/workflows/daily-digest.yml
+            </button>
+            <button
+              type="button"
+              onClick={() => setCronTab('node')}
+              className={`rounded-md px-3 py-1.5 font-mono text-xs transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
+                cronTab === 'node'
+                  ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300'
+              }`}
+            >
+              stillpress-digest-cron.mjs
+            </button>
+          </div>
+
+          <pre className="mt-3 overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-4 font-mono text-xs leading-relaxed text-slate-800 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
+            <code>{activeCronCode}</code>
           </pre>
         </section>
       )}
