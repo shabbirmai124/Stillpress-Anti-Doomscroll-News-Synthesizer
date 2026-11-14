@@ -177,81 +177,92 @@ export const ExtensionBuilderView: React.FC = () => {
             </select>
           </div>
 
-          {/* Exact 400px-style Extension Window Preview */}
-          <div className="mt-5 mx-auto max-w-[400px] overflow-hidden rounded-lg border border-slate-300 bg-[#F6F6F4] text-slate-900 shadow-sm dark:border-slate-700">
-            <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
-              <span className="font-serif text-base font-bold text-slate-900">Stillpress</span>
-              <label className="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={simCrossVerify}
-                  onChange={(e) => setSimCrossVerify(e.target.checked)}
-                />
-                <span>Cross-verify</span>
-              </label>
+          {/* Realistic Chrome Toolbar + 400px Extension Popup Frame */}
+          <div className="mt-5 overflow-hidden rounded-xl border border-slate-300 bg-slate-200/70 p-3 dark:border-slate-700 dark:bg-slate-900/70">
+            <div className="mb-3 flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[11px] text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+              <span className="truncate font-mono">
+                https://news-outlet.example/breaking-coverage
+              </span>
+              <span className="shrink-0 rounded bg-blue-900 px-1.5 py-0.5 font-serif text-[10px] font-bold text-white">
+                S
+              </span>
             </div>
 
-            <div className="p-4">
-              <button
-                type="button"
-                disabled={simLoading}
-                onClick={runSimulator}
-                className="w-full rounded-md bg-blue-900 px-3.5 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-blue-950 disabled:opacity-60 cursor-pointer"
-              >
-                {simLoading ? 'Extracting & Neutralizing...' : 'Strip Bias & Summarize'}
-              </button>
+            <div className="mx-auto max-w-[400px] overflow-hidden rounded-lg border border-slate-300 bg-[#F6F6F4] text-slate-900 shadow-sm dark:border-slate-700">
+              <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
+                <span className="font-serif text-base font-bold text-slate-900">Stillpress</span>
+                <label className="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={simCrossVerify}
+                    onChange={(e) => setSimCrossVerify(e.target.checked)}
+                  />
+                  <span>Cross-verify</span>
+                </label>
+              </div>
 
-              {simError && (
-                <p className="mt-3 text-xs text-red-700">{simError}</p>
-              )}
+              <div className="p-4">
+                <button
+                  type="button"
+                  disabled={simLoading}
+                  onClick={runSimulator}
+                  className="w-full rounded-md bg-blue-900 px-3.5 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-blue-950 disabled:opacity-60 cursor-pointer"
+                >
+                  {simLoading ? 'Extracting & Neutralizing...' : 'Strip Bias & Summarize'}
+                </button>
 
-              {!simResult && !simLoading && (
-                <p className="mt-3 text-xs leading-relaxed text-slate-600">
-                  Click the button above to simulate running Readability.js on the selected tab and rendering the popup output.
-                </p>
-              )}
+                {simError && (
+                  <p className="mt-3 text-xs text-red-700">{simError}</p>
+                )}
 
-              {simResult && (
-                <div className="mt-4 max-h-[340px] overflow-y-auto rounded-lg border border-slate-200 bg-white p-4">
-                  <div className="text-[11px] text-slate-500">
-                    {simResult.topicCategory} · {simResult.extractedMeta?.siteName} · {simResult.readingTimeMinutes} min read
-                  </div>
-                  <h3 className="mt-1.5 border-b border-slate-200 pb-2.5 font-serif text-base font-semibold leading-snug text-slate-900">
-                    {simResult.neutralHeadline}
-                  </h3>
+                {!simResult && !simLoading && (
+                  <p className="mt-3 text-xs leading-relaxed text-slate-600">
+                    Click above to simulate injecting Readability.js into the active tab and rendering the popup summary.
+                  </p>
+                )}
 
-                  <div className="mt-3">
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                      Core Facts
+                {simResult && (
+                  <div className="mt-4 max-h-[340px] overflow-y-auto rounded-lg border border-slate-200 bg-white p-4">
+                    <div className="text-[11px] text-slate-500">
+                      {simResult.topicCategory} · {simResult.extractedMeta?.siteName} · {simResult.readingTimeMinutes} min read
                     </div>
-                    <ul className="mt-1.5 list-disc space-y-1.5 pl-4 text-xs text-slate-800">
-                      {simResult.coreFacts.slice(0, 3).map((f, i) => (
-                        <li key={i}>{f}</li>
-                      ))}
-                    </ul>
-                  </div>
+                    <h3 className="mt-1.5 border-b border-slate-200 pb-2.5 font-serif text-base font-semibold leading-snug text-slate-900">
+                      {simResult.neutralHeadline}
+                    </h3>
 
-                  <div className="mt-3">
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                      Differing Perspectives
+                    <div className="mt-3">
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                        Core Facts
+                      </div>
+                      <ul className="mt-1.5 list-disc space-y-1.5 pl-4 text-xs text-slate-800">
+                        {simResult.coreFacts.slice(0, 3).map((f, i) => (
+                          <li key={i}>{f}</li>
+                        ))}
+                      </ul>
                     </div>
-                    <ul className="mt-1.5 list-disc space-y-1.5 pl-4 text-xs text-slate-700">
-                      {simResult.differingPerspectives.slice(0, 2).map((p, i) => (
-                        <li key={i}>{p}</li>
-                      ))}
-                    </ul>
-                  </div>
 
-                  <div className="mt-3">
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                      Historical Context
+                    <div className="mt-3">
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                        Differing Perspectives
+                      </div>
+                      <ul className="mt-1.5 list-disc space-y-1.5 pl-4 text-xs text-slate-700">
+                        {simResult.differingPerspectives.slice(0, 2).map((p, i) => (
+                          <li key={i}>{p}</li>
+                        ))}
+                      </ul>
                     </div>
-                    <p className="mt-1 text-xs leading-relaxed text-slate-700">
-                      {simResult.historicalContext}
-                    </p>
+
+                    <div className="mt-3">
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                        Historical Context
+                      </div>
+                      <p className="mt-1 text-xs leading-relaxed text-slate-700">
+                        {simResult.historicalContext}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </section>

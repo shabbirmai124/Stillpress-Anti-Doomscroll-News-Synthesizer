@@ -390,17 +390,34 @@ export const SynthesizerWorkspace: React.FC<SynthesizerWorkspaceProps> = ({
                 </div>
 
                 <div>
-                  <label
-                    htmlFor="paste-body"
-                    className="block text-xs font-medium text-slate-700 dark:text-slate-300"
-                  >
-                    Raw article text
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label
+                      htmlFor="paste-body"
+                      className="block text-xs font-medium text-slate-700 dark:text-slate-300"
+                    >
+                      Raw article text
+                    </label>
+                    <span className="font-mono text-[11px] text-slate-400 dark:text-slate-500">
+                      Ctrl/⌘ + Enter
+                    </span>
+                  </div>
                   <textarea
                     id="paste-body"
                     rows={7}
                     value={textInput}
                     onChange={(e) => setTextInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                        e.preventDefault();
+                        if (!isLoading && textInput.trim().length >= 80) {
+                          runSynthesis({
+                            title: titleInput.trim() || undefined,
+                            siteName: sourceInput.trim() || 'Pasted Article',
+                            text: textInput.trim(),
+                          });
+                        }
+                      }
+                    }}
                     placeholder="Paste paywalled or sensationalist article prose here..."
                     className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm leading-relaxed text-slate-900 placeholder:text-slate-400 focus:border-blue-900 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                   />
@@ -468,12 +485,12 @@ export const SynthesizerWorkspace: React.FC<SynthesizerWorkspaceProps> = ({
                 )}
 
                 {rssLoading ? (
-                  <div className="flex items-center gap-2 py-8 text-xs text-slate-500 justify-center">
+                  <div className="flex items-center justify-center gap-2 py-8 text-xs text-slate-500">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Fetching live RSS headlines...
                   </div>
                 ) : (
-                  <ul className="max-h-[380px] divide-y divide-slate-100 overflow-y-auto pr-1 dark:divide-slate-800">
+                  <ul className="max-h-[400px] divide-y divide-slate-100 overflow-y-auto pr-1 dark:divide-slate-800">
                     {rssItems.slice(0, 12).map((item) => (
                       <li key={item.id} className="py-3 first:pt-0 last:pb-0">
                         <button
@@ -487,18 +504,21 @@ export const SynthesizerWorkspace: React.FC<SynthesizerWorkspaceProps> = ({
                               siteName: item.source,
                             });
                           }}
-                          className="group w-full text-left cursor-pointer disabled:opacity-60"
+                          className="group flex w-full items-start justify-between gap-3 text-left cursor-pointer disabled:opacity-60"
                         >
-                          <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
-                            <span className="font-medium text-slate-700 dark:text-slate-300">
-                              {item.source}
-                            </span>
-                            <span aria-hidden="true">·</span>
-                            <span className="capitalize">{item.category}</span>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+                              <span className="font-medium text-slate-700 dark:text-slate-300">
+                                {item.source}
+                              </span>
+                              <span aria-hidden="true">·</span>
+                              <span className="capitalize">{item.category}</span>
+                            </div>
+                            <p className="mt-1 text-xs font-medium leading-snug text-slate-900 group-hover:text-blue-900 dark:text-slate-100 dark:group-hover:text-blue-400">
+                              {item.title}
+                            </p>
                           </div>
-                          <p className="mt-1 text-xs font-medium leading-snug text-slate-900 group-hover:text-blue-900 dark:text-slate-100 dark:group-hover:text-blue-400">
-                            {item.title}
-                          </p>
+                          <ArrowRight className="mt-4 h-3.5 w-3.5 shrink-0 text-slate-300 transition-colors group-hover:text-blue-900 dark:text-slate-600 dark:group-hover:text-blue-400" />
                         </button>
                       </li>
                     ))}

@@ -458,6 +458,13 @@ sendMorningDigest().catch((err) => {
                     <Download className="h-3.5 w-3.5" />
                     .txt
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => window.print()}
+                    className="no-print inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 cursor-pointer dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                  >
+                    Print
+                  </button>
                 </div>
               </div>
 
@@ -536,16 +543,82 @@ sendMorningDigest().catch((err) => {
               )}
             </div>
           ) : (
-            <div className="rounded-xl border border-slate-200 bg-white p-8 sm:p-12 text-center dark:border-slate-800 dark:bg-[#16191D]">
-              <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-                Digest Ready to Compile
-              </p>
-              <h2 className="mt-2 font-serif text-2xl font-semibold text-slate-900 dark:text-slate-100">
-                Select up to 7 stories on the left
-              </h2>
-              <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-                Stillpress will read the selected RSS feeds, remove sensationalist language, and produce one calm morning briefing with an exportable plain-text email.
-              </p>
+            <div className="rounded-xl border border-slate-200 bg-white p-6 sm:p-8 dark:border-slate-800 dark:bg-[#16191D]">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-4 dark:border-slate-800">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                    Edition Preview Queue
+                  </p>
+                  <h2 className="mt-1 font-serif text-2xl font-semibold text-slate-900 dark:text-slate-100">
+                    {new Date().toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </h2>
+                </div>
+                <span className="font-mono text-xs text-slate-500 tabular-nums dark:text-slate-400">
+                  {selectedIds.size} of 7 selected
+                </span>
+              </div>
+
+              {selectedIds.size === 0 ? (
+                <p className="py-10 text-center text-sm text-slate-500 dark:text-slate-400">
+                  Check up to 7 stories in the Live RSS Queue to assemble today’s calm edition.
+                </p>
+              ) : (
+                <ol className="mt-5 divide-y divide-slate-100 dark:divide-slate-800">
+                  {articles
+                    .filter((a) => selectedIds.has(a.id))
+                    .map((item, idx) => (
+                      <li key={item.id} className="flex items-start gap-3.5 py-3.5 first:pt-0 last:pb-0">
+                        <span className="font-mono text-xs font-semibold text-blue-900 tabular-nums pt-0.5 dark:text-blue-400">
+                          0{idx + 1}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                            {item.source} · <span className="capitalize">{item.category}</span>
+                          </div>
+                          <p className="mt-0.5 text-sm font-medium leading-snug text-slate-900 dark:text-slate-100">
+                            {item.title}
+                          </p>
+                          {item.snippet && (
+                            <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+                              {item.snippet}
+                            </p>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                </ol>
+              )}
+
+              <div className="mt-6 grid grid-cols-1 gap-4 border-t border-slate-200 pt-5 text-xs text-slate-600 sm:grid-cols-3 dark:border-slate-800 dark:text-slate-400">
+                <div>
+                  <div className="font-semibold text-slate-900 dark:text-slate-200">
+                    Calm Headline Rewrite
+                  </div>
+                  <p className="mt-1 leading-relaxed">
+                    Strips urgency hooks and alarmist adjectives across every selected story.
+                  </p>
+                </div>
+                <div>
+                  <div className="font-semibold text-slate-900 dark:text-slate-200">
+                    3-Minute Cap
+                  </div>
+                  <p className="mt-1 leading-relaxed">
+                    Limits each edition to 7 items with concise factual bullets and history.
+                  </p>
+                </div>
+                <div>
+                  <div className="font-semibold text-slate-900 dark:text-slate-200">
+                    Email &amp; Print Ready
+                  </div>
+                  <p className="mt-1 leading-relaxed">
+                    Export as plain-text email, downloadable .txt, or printable broadsheet.
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </section>
