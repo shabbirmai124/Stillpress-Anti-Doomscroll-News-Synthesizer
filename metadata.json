@@ -1,0 +1,6 @@
+{
+  "name": "Stillpress — Anti-Doomscroll News Synthesizer",
+  "description": "Transform polarizing, sensationalist news into calm, bulleted factual briefings with cross-source verification, historical context, daily RSS digests, and a Manifest V3 Chrome extension.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
